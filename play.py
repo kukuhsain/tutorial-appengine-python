@@ -1,14 +1,10 @@
-import webapp2
+import os
 
-form = """
-<form method="post">
-	<h1>Date of Birth</h1>
-	<p>Day: <input name="day"></p>
-	<p>Month: <input name="month"></p>
-	<p>Year: <input name="year"></p>
-	<input type="submit">
-</form>
-"""
+import webapp2
+import jinja2
+
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
 
 def validate_year(year):
 	if year.isdigit():
@@ -36,10 +32,23 @@ def validate_day(day):
 	else:
 		return " Wrong Day!!! "
 
-class MainPage(webapp2.RequestHandler):
+class Handler(webapp2.RequestHandler):
+	"""Handler Prototype"""
+	def write(self, *a, **kw):
+		self.response.out.write(*a, **kw)
+
+	def render_str(self, template, **params):
+		t = jinja_env.get_template(template)
+		return t.render(params)
+
+	def render(self, template, **kw):
+		self.write(self.render_str(template, **kw))
+		
+
+class MainPage(Handler):
 	def get(self):
 		# self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write(form)
+		self.render("date-of-birth.html")
 
 	def post(self):
 		# self.response.out.write("Thanks bro")
@@ -47,7 +56,7 @@ class MainPage(webapp2.RequestHandler):
 		result_month = validate_month(self.request.get('month'))
 		result_day = validate_day(self.request.get('day'))
 		
-		self.response.out.write(result_year+result_month+result_day)
+		self.write(result_year+result_month+result_day)
 
 app = webapp2.WSGIApplication([
 	('/', MainPage),
