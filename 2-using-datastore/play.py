@@ -7,16 +7,6 @@ from google.appengine.ext import db
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
-
-def validate_year(year):
-	if year.isdigit():
-		year = int(year)
-
-	if year>1900 and year<2020:
-		return True
-	else:
-		return False
-
 class Validation():
 	def validate_year(self, year):
 		if year.isdigit():
