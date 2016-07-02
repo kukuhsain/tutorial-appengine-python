@@ -4,7 +4,7 @@ import webapp2
 import jinja2
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 def validate_year(year):
 	if year.isdigit():
@@ -47,11 +47,9 @@ class Handler(webapp2.RequestHandler):
 
 class MainPage(Handler):
 	def get(self):
-		# self.response.headers['Content-Type'] = 'text/plain'
 		self.render("date-of-birth.html")
 
 	def post(self):
-		# self.response.out.write("Thanks bro")
 		result_year = validate_year(self.request.get('year'))
 		result_month = validate_month(self.request.get('month'))
 		result_day = validate_day(self.request.get('day'))
