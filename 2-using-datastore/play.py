@@ -12,6 +12,10 @@ class Note(ndb.Model):
 	content = ndb.TextProperty(required=True)
 	datetime_created = ndb.DateTimeProperty(auto_now_add=True)
 
+	@classmethod
+	def get_all_notes(cls):
+		return cls.query().order(-cls.datetime_created).fetch()
+
 class Handler(webapp2.RequestHandler):
 	"""Handler Prototype"""
 	def write(self, *a, **kw):
@@ -29,7 +33,9 @@ class MainPage(Handler):
 	def get(self):
 		previous_value = {}
 		error = {}
-		self.render("note.html", error=error, previous_value=previous_value)
+		notes = Note.query().order(-Note.datetime_created).fetch()
+
+		self.render("note.html", error=error, previous_value=previous_value, notes=notes)
 
 	def post(self):
 		title = self.request.get('title')
@@ -47,12 +53,17 @@ class MainPage(Handler):
 		if not content:
 			error['content'] = "You need to add content !!!"
 
+		notes = Note.get_all_notes()
 		if title and content:
 			note = Note(title=title, content=content)
 			note.put()
+			notes.insert(0, note)
+			print note
 			previous_value = {}
 
-		self.render("note.html", error=error, previous_value=previous_value)
+		
+		print notes
+		self.render("note.html", error=error, previous_value=previous_value, notes=notes)
 
 app = webapp2.WSGIApplication([
 	('/', MainPage),
