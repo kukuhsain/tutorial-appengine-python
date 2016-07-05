@@ -2,43 +2,15 @@ import os
 import webapp2
 import jinja2
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
-class Validation():
-	def validate_year(self, year):
-		if year.isdigit():
-			year = int(year)
-
-		if year>1900 and year<2020:
-			return year
-		else:
-			return False
-
-	def validate_month(self, month):
-		months = ('jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec')
-		month = month.lower()
-		if month in months:
-			return month
-		else:
-			return False
-
-	def validate_day(self, day):
-		if day.isdigit():
-			day = int(day)
-
-		if day>0 and day<=31:
-			return day
-		else:
-			return False
-
-class People(db.Model):
-	name = db.StringProperty(required=True)
-	day_birth = db.IntegerProperty(required=True)
-	month_birth = db.StringProperty(required=True)
-	year_birth = db.IntegerProperty(required=True)
+class Note(ndb.Model):
+	title = ndb.StringProperty(required=True)
+	content = ndb.TextProperty(required=True)
+	datetime_created = ndb.DateTimeProperty(auto_now_add=True)
 
 class Handler(webapp2.RequestHandler):
 	"""Handler Prototype"""
@@ -55,24 +27,32 @@ class Handler(webapp2.RequestHandler):
 
 class MainPage(Handler):
 	def get(self):
-		self.render("date-of-birth.html")
+		previous_value = {}
+		error = {}
+		self.render("note.html", error=error, previous_value=previous_value)
 
 	def post(self):
-		name = self.request.get('name')
-		year = self.request.get('year')
-		month = self.request.get('month')
-		day = self.request.get('day')
+		title = self.request.get('title')
+		content = self.request.get('content')
 
-		validated_year = Validation().validate_year(year)
-		validated_month = Validation().validate_month(month)
-		validated_day = Validation().validate_day(day)
+		previous_value = {}
+		error = {}
 
-		if validate_year and validated_month and validated_day:
-			person = People(name=name, day_birth=validated_day, month_birth=validated_month, year_birth=validated_year)
-			person.put()
-			self.write("Successful!!!")
-		else:
-			self.write("Failed!!!")
+		previous_value['title'] = title
+		previous_value['content'] = content
+
+		if not title:
+			error['title'] = "You need to add title !!!"
+
+		if not content:
+			error['content'] = "You need to add content !!!"
+
+		if title and content:
+			note = Note(title=title, content=content)
+			note.put()
+			previous_value = {}
+
+		self.render("note.html", error=error, previous_value=previous_value)
 
 app = webapp2.WSGIApplication([
 	('/', MainPage),

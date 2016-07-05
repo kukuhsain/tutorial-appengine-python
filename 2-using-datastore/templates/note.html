@@ -1,0 +1,22 @@
+<form method="post">
+	<!-- Title -->
+	<h1>Title</h1>
+	<p style="color: red">{{error['title']}}</p>
+	<input name="title" value="{{previous_value['title']}}"></input>
+
+	<!-- Content -->
+	<h1>Content</h1>
+	<p style="color: red">{{error['content']}}</p>
+	<textarea name="content">{{previous_value['content']}}</textarea>
+	<br>
+	<button type="submit">Submit</button>
+</form>
+
+<hr>
+<hr>
+
+{% for note in notes %}
+	<h3>{{note['title']}}</h3>
+	<p>{{note['content']}}</p>
+	<br>
+{% endfor %}
