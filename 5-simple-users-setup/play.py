@@ -57,6 +57,14 @@ class User(ndb.Model):
 	created_date = ndb.DateTimeProperty(auto_now_add=True)
 
 	@classmethod
+	def check_existing_username(cls, username):
+		user = ndb.Key('User', username).get()
+		if user:
+			return True
+		else:
+			return False
+
+	@classmethod
 	def register(cls, username, password, email=None):
 		hashed_password = HashingPassword().make_hashing_password(username, password)
 		new_user = User(username=username, password=hashed_password, email=email)
@@ -155,7 +163,8 @@ class DashboardPage(Handler):
 	def get(self):
 		userid = self.read_secure_cookie('id')
 		if userid:
-			self.render("dashboard.html")
+			username = User.get_by_id(int(userid)).username
+			self.render("dashboard.html", username=username)
 		else:
 			self.redirect('/')
 

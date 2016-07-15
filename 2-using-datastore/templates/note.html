@@ -16,7 +16,11 @@
 <hr>
 
 {% for note in notes %}
+<form action="/delete" method="post">
 	<h2>{{note.title}}</h2>
 	<p>{{note.content}}</p>
-	<br>
+	<input type="hidden" name="note-id" value="{{note.key.id()}}">
+	<button type="submit">Delete</button>
+</form>
+<br>
 {% endfor %}
