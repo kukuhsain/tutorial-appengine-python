@@ -69,8 +69,16 @@ class User(ndb.Model):
 
 	@classmethod
 	def login(cls, username, password):
-		pass
-		
+		user = cls.get_user_by_username(username)
+		if user:
+			password_validation_result = HashingPassword().validate_password(username, password, user.password)
+			if password_validation_result:
+				return user.key.id()
+			else:
+				return False
+		else:
+			return False
+
 
 class Handler(webapp2.RequestHandler):
 	"""Handler Prototype"""
@@ -125,19 +133,12 @@ class LoginPage(Handler):
 		username = self.request.get('username')
 		password = self.request.get('password')
 
-		user = User.get_user_by_username(username)
-
-		if user:
-			password_validation_result = HashingPassword().validate_password(username, password, user.password)
-			if password_validation_result:
-				userid = user.key.id()
-				self.set_secure_cookie('id', userid)
-				self.redirect('/dashboard')
-			else:
-				error = "Login failed, wrong password"
-				self.render("login.html", error=error)
+		userid = User.login(username, password)
+		if userid:
+			self.set_secure_cookie('id', userid)
+			self.redirect('/dashboard')
 		else:
-			error = "Login failed, invalid username"
+			error = "Login failed, wrong username and/or password"
 			self.render("login.html", error=error)
 
 class LogoutPage(Handler):
