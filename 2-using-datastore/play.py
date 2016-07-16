@@ -80,7 +80,6 @@ class MainPage(Handler):
 
 		if not content:
 			error['content'] = "You need to add content !!!"
-
 		
 		if title and content:
 			Note.add_note(title=title, content=content)

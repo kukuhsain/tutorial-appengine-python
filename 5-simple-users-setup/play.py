@@ -50,19 +50,15 @@ class HashingPassword():
 		
 
 class User(ndb.Model):
-	# userid = ndb.IntegerProperty(required=True)
 	username = ndb.StringProperty(required=True)
 	password = ndb.StringProperty(required=True)
 	email = ndb.StringProperty()
 	created_date = ndb.DateTimeProperty(auto_now_add=True)
 
 	@classmethod
-	def check_existing_username(cls, username):
-		user = ndb.Key('User', username).get()
-		if user:
-			return True
-		else:
-			return False
+	def get_user_by_username(cls, username):
+		user = cls.query(cls.username==username).get()
+		return user
 
 	@classmethod
 	def register(cls, username, password, email=None):
@@ -129,8 +125,20 @@ class LoginPage(Handler):
 		username = self.request.get('username')
 		password = self.request.get('password')
 
+		user = User.get_user_by_username(username)
 
-		# validate_user()
+		if user:
+			password_validation_result = HashingPassword().validate_password(username, password, user.password)
+			if password_validation_result:
+				userid = user.key.id()
+				self.set_secure_cookie('id', userid)
+				self.redirect('/dashboard')
+			else:
+				error = "Login failed, wrong password"
+				self.render("login.html", error=error)
+		else:
+			error = "Login failed, invalid username"
+			self.render("login.html", error=error)
 
 class LogoutPage(Handler):
 	def get(self):
@@ -152,7 +160,10 @@ class RegisterPage(Handler):
 		email = self.request.get('email')
 
 		if password != password_again:
-			error = 'Password should be same with Password Again'
+			error = "Password should be same with Password Again"
+			self.render("register.html", error=error)
+		elif User.get_user_by_username(username):
+			error = "Username is not available"
 			self.render("register.html", error=error)
 		else:
 			userid = User.register(username, password, email)
