@@ -62,10 +62,14 @@ class User(ndb.Model):
 
 	@classmethod
 	def register(cls, username, password, email=None):
-		hashed_password = HashingPassword().make_hashing_password(username, password)
-		new_user = User(username=username, password=hashed_password, email=email)
-		new_user.put()
-		return new_user.key.id()
+		user = cls.get_user_by_username(username)
+		if not user:
+			hashed_password = HashingPassword().make_hashing_password(username, password)
+			new_user = cls(username=username, password=hashed_password, email=email)
+			new_user.put()
+			return new_user.key.id()
+		else:
+			return False
 
 	@classmethod
 	def login(cls, username, password):
@@ -105,14 +109,6 @@ class Handler(webapp2.RequestHandler):
 			return HashingCookie().check_secure_value(cookie_value)
 		else:
 			return False
-
-	def whatisthis(self, s):
-	    if isinstance(s, str):
-	        print "ordinary string"
-	    elif isinstance(s, unicode):
-	        print "unicode string"
-	    else:
-	        print "not a string"
 
 class HomePage(Handler):
 	def get(self):
@@ -160,16 +156,21 @@ class RegisterPage(Handler):
 		password_again = self.request.get('password-again')
 		email = self.request.get('email')
 
-		if password != password_again:
-			error = "Password should be same with Password Again"
-			self.render("register.html", error=error)
-		elif User.get_user_by_username(username):
-			error = "Username is not available"
-			self.render("register.html", error=error)
+		if username and password and password_again:
+			if password != password_again:
+				error = "Password should be same with Password Again"
+				self.render("register.html", error=error)
+			else:
+				userid = User.register(username, password, email)
+				if userid:
+					self.set_secure_cookie('id', userid)
+					self.redirect('/dashboard')
+				else:
+					error = "Username is not available"
+					self.render("register.html", error=error)
 		else:
-			userid = User.register(username, password, email)
-			self.set_secure_cookie('id', userid)
-			self.redirect('/dashboard')
+			error = "You must fill all required inputs"
+			self.render("register.html", error=error)
 
 class DashboardPage(Handler):
 	def get(self):
