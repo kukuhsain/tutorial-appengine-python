@@ -58,7 +58,7 @@ class MainPage(Handler):
 		title = self.request.get('title')
 		img = self.request.get('img')
 
-		# img = images.resize(img, 32, 32)
+		img = images.resize(img, 150, 200)
 
 		previous_value = {}
 		error = {}
@@ -82,14 +82,11 @@ class ImageHandler(Handler):
 	def get(self):
 		img_key = self.request.get('img-id')
 		photo = Photo.get_photo(img_key)
-		print photo
 		if photo:
 			self.response.headers['Content-Type'] = 'image/png'
 			self.write(photo.image)
-			print 'trueeeeeeee'
 		else:
 			self.response.out.write("No image")
-			print 'falseeeeee'
 
 class DeletePage(Handler):
 	def get(self):
