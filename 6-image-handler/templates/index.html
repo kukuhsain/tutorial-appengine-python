@@ -1,0 +1,26 @@
+<form method="post" enctype="multipart/form-data">
+	<!-- Title -->
+	<h1>Title</h1>
+	<p style="color: red">{{error['title']}}</p>
+	<input name="title" value="{{previous_value['title']}}"></input>
+
+	<!-- Image -->
+	<h1>Image</h1>
+	<p style="color: red">{{error['img']}}</p>
+	<input type="file" name="img">
+	<br>
+	<button type="submit">Submit</button>
+</form>
+
+<hr>
+<hr>
+
+{% for photo in photos %}
+<form action="/delete" method="post">
+	<h2>{{photo.title}}</h2>
+	<img src="/image?img-id={{photo.key.urlsafe()}}">
+	<input type="hidden" name="photo-id" value="{{photo.key.id()}}">
+	<button type="submit">Delete</button>
+</form>
+<br>
+{% endfor %}
